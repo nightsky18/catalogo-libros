@@ -1,105 +1,193 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* App Layout */
+.app-container {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
-#root {
-  max-width: 1200px;
+/* Header */
+.app-header {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 2px 10px var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-icon {
+  font-size: 2rem;
+}
+
+.logo h1 {
+  font-size: 1.5rem;
+  color: var(--primary);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-link {
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  color: var(--dark);
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  background: var(--light);
+  color: var(--primary);
+}
+
+.nav-link.active {
+  background: var(--primary);
+  color: white;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+}
+
+.status {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status.loading {
+  background: var(--warning);
+  color: white;
+}
+
+.status.connected {
+  background: var(--success);
+  color: white;
+}
+
+.status.disconnected {
+  background: var(--danger);
+  color: white;
+}
+
+/* Main content */
+.app-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
 }
 
-.App {
-  padding: 40px 20px;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-h1 {
-  color: #ffffff;
-  font-size: 2.5rem;
-  margin-bottom: 40px;
-  text-align: center;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 15px;
-}
-
-.status-card {
-  background: rgba(255, 255, 255, 0.95);
+.connection-error {
+  background: white;
+  padding: 3rem;
   border-radius: 16px;
-  padding: 40px;
-  margin: 20px auto;
-  max-width: 600px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-}
-
-.status-card h2 {
-  color: #333;
-  font-size: 1.5rem;
-  margin-bottom: 25px;
   text-align: center;
+  box-shadow: 0 10px 30px var(--shadow);
+  margin: 2rem;
 }
 
-.status-card p {
-  font-size: 1.2rem;
-  margin: 15px 0;
-  color: #2d3748;
+.connection-error h2 {
+  color: var(--danger);
+  margin-bottom: 1rem;
+}
+
+.connection-error p {
+  color: #666;
+  margin: 0.5rem 0;
+}
+
+/* Footer */
+.app-footer {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1.5rem 2rem;
   text-align: center;
-  font-weight: 500;
+  color: #666;
+  border-top: 1px solid var(--border);
+  width: 100%;
+  margin-top: auto;
 }
 
-.status-card p.success {
-  color: #22c55e;
-  font-weight: 600;
+.app-footer p {
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
 }
 
-.status-card p.error {
-  color: #ef4444;
-  font-weight: 600;
-}
-
-.info {
-  margin-top: 30px;
-  color: #ffffff;
-  line-height: 1.8;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 20px;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-}
-
-.info strong {
-  color: #fbbf24;
-  font-weight: 600;
-}
-
-/* Animación para el check verde */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
+/* Responsive */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+
+  .nav-menu {
+    width: 100%;
+    justify-content: space-around;
+    flex-wrap: wrap;
+  }
+
+  .nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .logo h1 {
+    font-size: 1.25rem;
+  }
+
+  .app-main {
+    padding: 1rem;
   }
 }
 
-.status-card p.success {
-  animation: fadeIn 0.5s ease-in-out;
+@media (max-width: 480px) {
+  .logo {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .logo h1 {
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  .nav-menu {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .nav-link {
+    text-align: center;
+  }
 }

@@ -90,6 +90,18 @@ export const downloadXMLReport = () =>
     headers: { 'Accept': 'application/xml' }
   });
 
+/**
+ * Descarga el reporte PDF como archivo
+ * @returns {Promise} - Blob del archivo PDF
+ */
+export const downloadPDFReport = () =>
+  axios.get(`${API_URL}/api/reports/pdf`, {
+    responseType: 'blob',
+    headers: {
+      'Accept': 'application/pdf'
+    }
+  });
+  
 // ==================== HEALTH CHECK ====================
 
 /**

@@ -948,3 +948,21 @@
   overflow-x: auto !important;
   overflow-y: auto !important;
 }
+
+.btn-accent {
+  background: linear-gradient(135deg, #AD5940 0%, #CC8263 100%);
+  color: white;
+  border: none;
+  font-weight: 600;
+}
+
+.btn-accent:hover:not(:disabled) {
+  background: linear-gradient(135deg, #8F4A34 0%, #AD5940 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(173, 89, 64, 0.4);
+}
+
+.btn-accent:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

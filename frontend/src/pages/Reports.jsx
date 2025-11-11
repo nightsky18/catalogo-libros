@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getXMLReport, downloadXMLReport } from '../services/api';
+import { downloadPDFReport } from '../services/api';
 import './Reports.css';
 
 /**
@@ -60,6 +61,35 @@ function Reports() {
     }
   };
 
+  /**
+   * Maneja la descarga del PDF
+   * Patrón: Separation of Concerns - lógica de descarga separada
+   */
+  const handleDownloadPDF = async () => {
+    try {
+      // Mostrar indicador de carga
+      setLoading(true);
+
+      const response = await downloadPDFReport();
+      
+      // Crear blob y descargar
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `catalogo-libros-${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+      alert('Error al descargar el PDF: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const applyFiltersToXML = (xml, filters) => {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xml, 'text/xml');
@@ -115,9 +145,21 @@ function Reports() {
           <h1>📊 Reportes XML Avanzados</h1>
           <p>Sistema completo de visualización y análisis de datos XML</p>
         </div>
-        <button onClick={handleDownload} className="btn btn-primary">
-          ⬇️ Descargar XML Filtrado
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button 
+            onClick={handleDownload} 
+            className="btn btn-primary"
+          >
+            📄 Descargar XML Filtrado
+          </button>
+          <button 
+            onClick={handleDownloadPDF} 
+            className="btn btn-accent"
+            disabled={loading}
+          >
+            📕 Descargar PDF Completo
+          </button>
+        </div>
       </div>
 
       {/* Filtros */}

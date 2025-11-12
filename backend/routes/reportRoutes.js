@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   generateXMLReport,
   downloadXMLReport,
+  downloadPDFReport,
   getEstadisticas
 } = require('../controllers/reportController');
 
@@ -19,5 +20,8 @@ router.get('/download', downloadXMLReport);
 
 // GET /api/reports/stats - Obtener estadísticas JSON
 router.get('/stats', getEstadisticas);
+
+// GET /api/reports/pdf - Descargar informe PDF
+router.get('/pdf', downloadPDFReport);
 
 module.exports = router;

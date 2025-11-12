@@ -1,58 +1,70 @@
-import { useState, useEffect } from 'react';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import './App.css';
-import { healthCheck } from './services/api';
 
+// Importar páginas
+import Home from './pages/Home';
+import BookList from './pages/BookList';
+import BookForm from './pages/BookForm';
+import Reports from './pages/Reports';
+
+/**
+ * Componente principal de la aplicación
+ * Header limpio y profesional
+ */
 function App() {
-  const [status, setStatus] = useState('Conectando...');
-  const [error, setError] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-
-  useEffect(() => {
-    const checkBackend = async () => {
-      try {
-        const response = await healthCheck();
-        setStatus(`✅ Backend conectado: ${response.data.status}`);
-        setIsConnected(true);
-        setError(null);
-      } catch (err) {
-        setStatus('❌ Error al conectar con el backend');
-        setIsConnected(false);
-        setError(err.message);
-      }
-    };
-
-    checkBackend();
-  }, []);
+  const location = useLocation();
 
   return (
-    <div className="App">
-      <h1>
-        📚 Sistema de Gestión de Catálogo de Libros
-      </h1>
-      
-      <div className="status-card">
-        <h2>Estado de la Conexión</h2>
-        <p className={isConnected ? 'success' : 'error'}>
-          {status}
-        </p>
-        {error && (
-          <p style={{ color: '#ef4444', fontSize: '0.9rem', marginTop: '10px' }}>
-            Error: {error}
-          </p>
-        )}
-      </div>
-      
-      <div className="info">
-        <p>
-          <strong>Frontend</strong>: http://localhost:5173
-        </p>
-        <p>
-          <strong>Backend</strong>: http://localhost:5000
-        </p>
-        <p style={{ marginTop: '20px', fontSize: '0.9rem', opacity: 0.9 }}>
-          ✨ Sistema listo para desarrollo
-        </p>
-      </div>
+    <div className="app-container">
+      {/* Header profesional sin indicador de conexión */}
+      <header className="app-header">
+        <div className="header-content">
+          <Link to="/" className="logo">
+            <span className="logo-icon">📚</span>
+            <h1>Catálogo de Libros</h1>
+          </Link>
+          
+          <nav className="nav-menu">
+            <Link 
+              to="/" 
+              className={location.pathname === '/' ? 'nav-link active' : 'nav-link'}
+            >
+              Inicio
+            </Link>
+            <Link 
+              to="/books" 
+              className={location.pathname.startsWith('/books') ? 'nav-link active' : 'nav-link'}
+            >
+              Libros
+            </Link>
+            <Link 
+              to="/reports" 
+              className={location.pathname === '/reports' ? 'nav-link active' : 'nav-link'}
+            >
+              Reportes
+            </Link>
+          </nav>
+        </div>
+      </header>
+
+      {/* Contenido principal */}
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/books" element={<BookList />} />
+          <Route path="/books/new" element={<BookForm />} />
+          <Route path="/books/edit/:id" element={<BookForm />} />
+          <Route path="/reports" element={<Reports />} />
+        </Routes>
+      </main>
+
+      {/* Footer profesional */}
+      <footer className="app-footer">
+        <div className="footer-content">
+          <p>&copy; 2025 Catálogo de Libros</p>
+          <p>Progrmacion Distribuida y Paralela - Sistema de Gestión Bibliográfica</p>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -5,7 +5,8 @@ const {
   getBookById,
   createBook,
   updateBook,
-  deleteBook
+  deleteBook,
+  createBulkBooks
 } = require('../controllers/bookController');
 
 /**
@@ -17,7 +18,9 @@ router.route('/')
   .get(getAllBooks)      // GET /api/books - Listar todos
   .post(createBook);     // POST /api/books - Crear nuevo
 
-// Rutas con parámetro ID: /api/books/:id
+router.post('/bulk', createBulkBooks);
+
+  // Rutas con parámetro ID: /api/books/:id
 router.route('/:id')
   .get(getBookById)      // GET /api/books/:id - Obtener por ID
   .put(updateBook)       // PUT /api/books/:id - Actualizar

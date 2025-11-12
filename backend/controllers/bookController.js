@@ -5,37 +5,99 @@ const Book = require('../models/Book');
  */
 
 /**
- * Obtener todos los libros con paginación y filtros opcionales
+ * Obtener todos los libros con paginación y filtros avanzados
  * @route GET /api/books
+ * @access Public
  */
 const getAllBooks = async (req, res) => {
   try {
-    const { page = 1, limit = 10, genero, autor, titulo } = req.query;
+    const { 
+      genero, 
+      autor, 
+      titulo,
+      editorial,
+      anioDesde,
+      anioHasta,
+      paginasMin,
+      paginasMax,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      page = 1, 
+      limit = 12 
+    } = req.query;
+
+    // Construir el objeto de filtros
+    const filters = {};
     
-    // Construcción dinámica de filtros (Open/Closed Principle)
-    const filtros = {};
-    if (genero) filtros.genero = genero;
-    if (autor) filtros.autor = new RegExp(autor, 'i'); // Búsqueda case-insensitive
-    if (titulo) filtros.titulo = new RegExp(titulo, 'i');
+    if (genero) {
+      filters.genero = genero;
+    }
+    
+    if (autor) {
+      filters.autor = { $regex: autor, $options: 'i' };
+    }
+    
+    if (titulo) {
+      filters.titulo = { $regex: titulo, $options: 'i' };
+    }
 
-    const skip = (page - 1) * limit;
+    if (editorial) {
+      filters.editorial = { $regex: editorial, $options: 'i' };
+    }
 
-    const [libros, total] = await Promise.all([
-      Book.find(filtros)
-        .limit(parseInt(limit))
+    // Filtro por rango de años
+    if (anioDesde || anioHasta) {
+      filters.anioPublicacion = {};
+      if (anioDesde) {
+        filters.anioPublicacion.$gte = parseInt(anioDesde);
+      }
+      if (anioHasta) {
+        filters.anioPublicacion.$lte = parseInt(anioHasta);
+      }
+    }
+
+    // Filtro por rango de páginas
+    if (paginasMin || paginasMax) {
+      filters.numeroPaginas = {};
+      if (paginasMin) {
+        filters.numeroPaginas.$gte = parseInt(paginasMin);
+      }
+      if (paginasMax) {
+        filters.numeroPaginas.$lte = parseInt(paginasMax);
+      }
+    }
+
+    // Convertir a números
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Construir el objeto de ordenamiento
+    const sortObject = {};
+    sortObject[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    // Ejecutar queries en paralelo
+    const [books, totalBooks] = await Promise.all([
+      Book.find(filters)
+        .sort(sortObject)
         .skip(skip)
-        .sort({ createdAt: -1 }),
-      Book.countDocuments(filtros)
+        .limit(limitNum),
+      Book.countDocuments(filters)
     ]);
 
-    res.status(200).json({
+    // Calcular información de paginación
+    const totalPages = Math.ceil(totalBooks / limitNum);
+
+    res.json({
       success: true,
-      data: libros,
+      data: books,
       pagination: {
-        total,
-        page: parseInt(page),
-        pages: Math.ceil(total / limit),
-        limit: parseInt(limit)
+        currentPage: pageNum,
+        totalPages,
+        totalBooks,
+        booksPerPage: limitNum,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1
       }
     });
   } catch (error) {
@@ -195,10 +257,64 @@ const deleteBook = async (req, res) => {
   }
 };
 
+/**
+ * Crear múltiples libros de una vez
+ * @route POST /api/books/bulk
+ */
+const createBulkBooks = async (req, res) => {
+  try {
+    const books = req.body;
+
+    // Validar que sea un array
+    if (!Array.isArray(books)) {
+      return res.status(400).json({
+        success: false,
+        message: 'El body debe ser un array de libros'
+      });
+    }
+
+    // Validar que no esté vacío
+    if (books.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'El array de libros no puede estar vacío'
+      });
+    }
+
+    // Insertar todos los libros
+    const result = await Book.insertMany(books, { ordered: false });
+
+    res.status(201).json({
+      success: true,
+      message: `${result.length} libros creados exitosamente`,
+      data: result,
+      count: result.length
+    });
+  } catch (error) {
+    // Manejar errores de duplicados
+    if (error.code === 11000) {
+      const inserted = error.insertedDocs ? error.insertedDocs.length : 0;
+      return res.status(207).json({
+        success: true,
+        message: `${inserted} libros insertados. Algunos ISBNs ya existían.`,
+        data: error.insertedDocs,
+        count: inserted
+      });
+    }
+
+    res.status(400).json({
+      success: false,
+      message: 'Error al crear los libros',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getAllBooks,
   getBookById,
   createBook,
   updateBook,
-  deleteBook
+  deleteBook,
+  createBulkBooks
 };

@@ -34,9 +34,7 @@ class PDFReportBuilder {
     this.logoPath = path.resolve(__dirname, '../assets/Logo.png');
   }
 
-  /**
-   * Añade encabezado con degradado
-   */
+
 addHeader(title, subtitle = '') {
     const headerHeight = subtitle ? 100 : 75;
 
@@ -72,9 +70,7 @@ addHeader(title, subtitle = '') {
   }
 
 
-  /**
-   * Añade resumen - SIN EMOJI
-   */
+ 
   addSummarySection(stats) {
     this._checkPageSpace(180);
     
@@ -223,11 +219,11 @@ addHeader(title, subtitle = '') {
       .fillColor(this.colors.primary)
       .text('CATÁLOGO DE LIBROS', 50, this.currentY);
     
-    this.currentY += 30;
+    this.currentY += 14;
 
     this._renderTable(
       ['Título', 'Autor', 'Año', 'Pág.', 'Género'],
-      libros.slice(0, maxBooks).map(libro => [
+      libros.map(libro => [
         this._truncate(libro.titulo, 35),
         this._truncate(libro.autor, 28),
         libro.anioPublicacion.toString(),
@@ -236,18 +232,15 @@ addHeader(title, subtitle = '') {
       ]),
       [140, 120, 50, 60, 70]
     );
-
-    if (libros.length > maxBooks) {
       this.doc
-        .font('Helvetica')
-        .fontSize(9)
-        .fillColor(this.colors.gray600)
-        .text(`* Mostrando ${maxBooks} de ${libros.length} libros`, 50, this.currentY, { 
-          align: 'right',
-          width: 495
-        });
-      this.currentY += 20;
-    }
+    .font('Helvetica')
+    .fontSize(9)
+    .fillColor(this.colors.gray600)
+    .text(`Mostrando ${libros.length}/${libros.length} del catálogo`, 50, this.currentY, {
+      align: 'right',
+      width: 495
+    });
+  this.currentY += 16
 
     return this;
   }
@@ -283,7 +276,7 @@ addHeader(title, subtitle = '') {
    */
 _renderTable(headers, rows, widths) {
   const startX = 50;
-  const rowH = 22;
+  const rowH = 25;
   const headerH = 22;
   const tableW = widths.reduce((a, b) => a + b, 0);
 

@@ -20,7 +20,8 @@ const generateXMLReport = async (req, res) => {
     if (libros.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No hay libros en el catálogo para generar el reporte'
+        message: 'No hay libros en el catálogo para generar el reporte',
+        code: 'NO_DATA'
       });
     }
 
@@ -35,6 +36,7 @@ const generateXMLReport = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error al generar el reporte XML',
+      code: 'SERVER_ERROR',
       error: error.message
     });
   }
@@ -52,7 +54,8 @@ const downloadXMLReport = async (req, res) => {
     if (libros.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No hay libros en el catálogo'
+        message: 'No hay libros en el catálogo',
+        code: 'NO_DATA'
       });
     }
 
@@ -72,7 +75,8 @@ const downloadXMLReport = async (req, res) => {
     console.error('Error en downloadXMLReport:', error);
     res.status(500).json({
       success: false,
-      message: 'Error al descargar el reporte',
+      message: 'Error al descargar el reporte PDF',
+      code: 'SERVER_ERROR',
       error: error.message
     });
   }
@@ -184,11 +188,12 @@ const getEstadisticas = async (req, res) => {
  */
 function calcularEstadisticas(libros) {
   // Resumen general
-  const totalLibros = libros.length;
-  const totalPaginas = libros.reduce((sum, libro) => sum + (libro.numeroPaginas || 0), 0);
-  const promedioPaginasPorLibro = totalPaginas / totalLibros;
-  const promedioAnioPublicacion = libros.reduce((sum, l) => sum + l.anioPublicacion, 0) / totalLibros;
-  
+ const totalLibros = libros.length;
+  const totalPaginas = libros.reduce((sum, l) => sum + (l.numeroPaginas || 0), 0);
+  const promedioPaginasPorLibro = totalLibros ? totalPaginas / totalLibros : 0;
+  const promedioAnioPublicacion = totalLibros
+    ? libros.reduce((sum, l) => sum + l.anioPublicacion, 0) / totalLibros
+    : 0;
   // Editoriales únicas
   const editorialesSet = new Set(libros.map(l => l.editorial).filter(Boolean));
   const editorialesUnicas = editorialesSet.size;
@@ -328,7 +333,9 @@ function calcularEstadisticas(libros) {
       totalLibros,
       totalPaginas,
       promedioPaginasPorLibro,
+      promedioPaginasPorLibroRedondeado: Number(promedioPaginasPorLibro.toFixed(2)), // nuevo
       promedioAnioPublicacion,
+      promedioAnioPublicacionRedondeado: Math.round(promedioAnioPublicacion), // nuevo
       editorialesUnicas,
       anioMin,
       anioMax,

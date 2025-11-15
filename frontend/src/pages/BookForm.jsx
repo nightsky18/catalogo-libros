@@ -1,19 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createBook, getBook, updateBook } from '../services/api';
+import { loading, close, toast, alertError, formError, confirmAction } from '../utils/alerts';
 import './BookForm.css';
 
-/**
- * Formulario profesional para crear/editar libros
- * Validación completa y feedback visual
- */
 function BookForm() {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = Boolean(id);
 
-  const [loading, setLoading] = useState(false);
+  const [loadingState, setLoadingState] = useState(false); // evita sombra con loading() de alerts
   const [errors, setErrors] = useState({});
+  const [initialData, setInitialData] = useState(null);
   const [formData, setFormData] = useState({
     titulo: '',
     autor: '',
@@ -25,149 +23,183 @@ function BookForm() {
     descripcion: ''
   });
 
+  const isDirty = useMemo(() => {
+    if (!initialData) return false;
+    const a = {
+      ...initialData,
+      anioPublicacion: Number(initialData.anioPublicacion),
+      numeroPaginas: Number(initialData.numeroPaginas || 0),
+    };
+    const b = {
+      ...formData,
+      anioPublicacion: Number(formData.anioPublicacion),
+      numeroPaginas: Number(formData.numeroPaginas || 0),
+    };
+    return JSON.stringify(a) !== JSON.stringify(b);
+  }, [initialData, formData]);
+
   useEffect(() => {
     if (isEditMode) {
       loadBook();
+    } else {
+      // sembrar initialData para detección de cambios
+      setInitialData({
+        ...formData,
+        anioPublicacion: Number(formData.anioPublicacion),
+        numeroPaginas: Number(formData.numeroPaginas || 0),
+      });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const loadBook = async () => {
     try {
-      setLoading(true);
+      loading('Cargando libro...');
       const response = await getBook(id);
-      setFormData(response.data.data);
+      const data = response.data?.data || {};
+      const filled = {
+        titulo: data.titulo || '',
+        autor: data.autor || '',
+        isbn: data.isbnFormateado || data.isbn || '',
+        genero: data.genero || 'Ficción',
+        anioPublicacion: data.anioPublicacion || new Date().getFullYear(),
+        editorial: data.editorial || '',
+        numeroPaginas: data.numeroPaginas || '',
+        descripcion: data.descripcion || ''
+      };
+      setFormData(filled);
+      setInitialData(filled);
+      close();
     } catch (error) {
-      console.error('Error al cargar el libro:', error);
-      alert('Error al cargar el libro');
+      close();
+      alertError('Error al cargar el libro', error?.response?.data?.message || 'Inténtalo más tarde');
       navigate('/books');
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    
-    // Limpiar error del campo cuando el usuario empieza a escribir
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
+
+    if (name === 'isbn') {
+      const v = value.replace(/[^\dXx-]/g, '');
+      setFormData((prev) => ({ ...prev, [name]: v }));
+    } else if (name === 'anioPublicacion' || name === 'numeroPaginas') {
+      setFormData((prev) => ({ ...prev, [name]: value.replace(/[^\d]/g, '') }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
+
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const validateForm = () => {
     const newErrors = {};
+    const yNow = new Date().getFullYear();
 
-    if (!formData.titulo.trim()) {
-      newErrors.titulo = 'El título es obligatorio';
-    }
+    if (!formData.titulo.trim()) newErrors.titulo = 'El título es obligatorio';
+    if (!formData.autor.trim()) newErrors.autor = 'El autor es obligatorio';
 
-    if (!formData.autor.trim()) {
-      newErrors.autor = 'El autor es obligatorio';
-    }
-
-    if (!formData.isbn.trim()) {
+    const rawIsbn = (formData.isbn || '').trim();
+    if (!rawIsbn) {
       newErrors.isbn = 'El ISBN es obligatorio';
-    } else if (!/^[0-9-]+$/.test(formData.isbn)) {
-      newErrors.isbn = 'El ISBN solo puede contener números y guiones';
+    } else {
+      const cleaned = rawIsbn.replace(/[-\s]/g, '').toUpperCase();
+      const len = cleaned.length;
+      const match10 = /^\d{9}[\dX]$/.test(cleaned);
+      const match13 = /^\d{13}$/.test(cleaned);
+      if (len < 10 || len > 13) {
+        newErrors.isbn = 'El ISBN debe tener entre 10 y 13 caracteres (sin guiones).';
+      } else if (!(match10 || match13)) {
+        newErrors.isbn = 'ISBN inválido. Use ISBN-10 (X permitida) o ISBN-13 (13 dígitos).';
+      }
     }
 
-    if (!formData.genero) {
-      newErrors.genero = 'Selecciona un género';
-    }
+    if (!formData.genero) newErrors.genero = 'Selecciona un género';
 
-    const year = parseInt(formData.anioPublicacion);
-    if (!year || year < 1000 || year > new Date().getFullYear() + 1) {
-      newErrors.anioPublicacion = 'Ingresa un año válido';
-    }
+    const year = parseInt(formData.anioPublicacion, 10);
+    if (!year || year < 1000 || year > yNow + 1) newErrors.anioPublicacion = `Ingresa un año válido (1000 a ${yNow + 1})`;
 
-    if (!formData.editorial.trim()) {
-      newErrors.editorial = 'La editorial es obligatoria';
-    }
+    if (!formData.editorial.trim()) newErrors.editorial = 'La editorial es obligatoria';
 
-    const pages = parseInt(formData.numeroPaginas);
-    if (!pages || pages < 1) {
-      newErrors.numeroPaginas = 'El número de páginas debe ser mayor a 0';
-    }
+    const pages = parseInt(formData.numeroPaginas, 10);
+    if (!pages || pages < 1) newErrors.numeroPaginas = 'El número de páginas debe ser mayor a 0';
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    if (Object.keys(newErrors).length) {
+      formError('Revisa los campos', newErrors);
+      return false;
+    }
+    return true;
   };
+
+  const normalizeIsbnForSend = (v = '') => v.replace(/[-\s]/g, '').toUpperCase();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
-      setLoading(true);
+      loading(isEditMode ? 'Actualizando libro...' : 'Guardando libro...');
+      setLoadingState(true);
 
       const bookData = {
         ...formData,
-        anioPublicacion: parseInt(formData.anioPublicacion),
-        numeroPaginas: parseInt(formData.numeroPaginas)
+        isbn: normalizeIsbnForSend(formData.isbn),
+        anioPublicacion: parseInt(formData.anioPublicacion, 10),
+        numeroPaginas: parseInt(formData.numeroPaginas, 10)
       };
 
       if (isEditMode) {
         await updateBook(id, bookData);
+        close();
+        toast('Libro actualizado');
       } else {
         await createBook(bookData);
+        close();
+        toast('Libro creado');
       }
 
       navigate('/books');
     } catch (error) {
-      console.error('Error al guardar el libro:', error);
-      
-      if (error.response?.data?.message) {
-        alert(error.response.data.message);
+      close();
+      const data = error?.response?.data;
+      if (data?.errors?.length) {
+        const obj = Object.fromEntries(data.errors.map((msg, i) => [`Error ${i + 1}`, msg]));
+        formError(data.message || 'Error de validación', obj);
       } else {
-        alert('Error al guardar el libro');
+        alertError('Error al guardar', data?.message || 'Inténtalo más tarde');
       }
     } finally {
-      setLoading(false);
+      setLoadingState(false);
     }
   };
 
-  if (loading && isEditMode) {
-    return (
-      <div className="form-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Cargando libro...</p>
-        </div>
-      </div>
-    );
-  }
+  const handleBack = async () => {
+    if (isDirty) {
+      const ok = await confirmAction('¿Descartar cambios?', 'Los cambios no guardados se perderán', 'Sí, salir');
+      if (!ok) return;
+    }
+    navigate('/books');
+  };
 
   return (
     <div className="form-container fade-in">
-      {/* Header */}
       <div className="form-header">
         <div className="header-content">
           <h1>{isEditMode ? '✏️ Editar Libro' : '➕ Agregar Nuevo Libro'}</h1>
           <p className="form-subtitle">
-            {isEditMode 
-              ? 'Actualiza la información del libro' 
-              : 'Completa la información del nuevo libro'
-            }
+            {isEditMode ? 'Actualiza la información del libro' : 'Completa la información del nuevo libro'}
           </p>
         </div>
-        <button 
-          type="button" 
-          onClick={() => navigate('/books')} 
-          className="btn btn-secondary"
-        >
+        <button type="button" onClick={handleBack} className="btn btn-secondary">
           ← Volver al catálogo
         </button>
       </div>
 
-      {/* Formulario */}
       <form onSubmit={handleSubmit} className="book-form">
         <div className="form-section">
           <h2 className="section-title">📚 Información Principal</h2>
-          
+
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="titulo" className="required">Título del Libro</label>
@@ -238,7 +270,7 @@ function BookForm() {
 
         <div className="form-section">
           <h2 className="section-title">📖 Detalles de Publicación</h2>
-          
+
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="anioPublicacion" className="required">Año de Publicación</label>
@@ -289,7 +321,6 @@ function BookForm() {
 
         <div className="form-section">
           <h2 className="section-title">📝 Descripción</h2>
-          
           <div className="form-group full-width">
             <label htmlFor="descripcion">Descripción o Sinopsis</label>
             <textarea
@@ -299,26 +330,16 @@ function BookForm() {
               onChange={handleChange}
               rows="5"
               placeholder="Escribe una breve descripción del libro..."
-            ></textarea>
+            />
           </div>
         </div>
 
-        {/* Botones de acción */}
         <div className="form-actions">
-          <button
-            type="button"
-            onClick={() => navigate('/books')}
-            className="btn btn-secondary"
-            disabled={loading}
-          >
+          <button type="button" onClick={handleBack} className="btn btn-secondary" disabled={loadingState}>
             Cancelar
           </button>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={loading}
-          >
-            {loading ? (
+          <button type="submit" className="btn btn-primary" disabled={loadingState}>
+            {loadingState ? (
               <>
                 <span className="spinner-small"></span>
                 {isEditMode ? 'Actualizando...' : 'Guardando...'}

@@ -15,29 +15,37 @@ body,
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  background-attachment: fixed; /* AGREGAR esta línea */
-  background-size: cover; /* AGREGAR esta línea */
-  min-height: 100vh;
-  color: #1f2937;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
 }
 
 /* Variables CSS globales */
 :root {
-  --primary: #667eea;
-  --primary-dark: #5568d3;
-  --secondary: #764ba2;
-  --success: #22c55e;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --info: #3b82f6;
-  --dark: #1f2937;
-  --light: #f3f4f6;
-  --border: #e5e7eb;
-  --shadow: rgba(0, 0, 0, 0.1);
+  --primary: #08348C;        /* Azul institucional serio */
+  --primary-dark: #092C73;   /* Azul profundo */
+  --primary-light: #78B8BF;    /* Azul claro para acentos */
+  --secondary: #2f855a;        /* Verde moderado */
+  --success: #48bb78;          /* Verde agradable */
+  --danger: #7d0c0c;           /* Rojo sobrio */
+  --warning: #7c5a17;          /* Naranja dorado */
+  --info: #3182ce;             /* Azul medio */
+  --dark: #1a202c;             /* Gris muy oscuro */
+  --light: #f7fafc;  
+    --background: #f2f2f2;           /* Gris muy claro */
+  --border: #cbd5e0;           /* Gris borde */
+  --shadow: rgba(8,52,140,0.08);
+}
+
+:root {
+  --primary: #08348C;        /* Azul institucional serio */
+  --primary-dark: #092C73;   /* Azul profundo */
+  --primary-light: #78B8BF;  /* Azul verdoso suave, para fondo/acento */
+  --secondary: #468C51;      /* Verde académico */
+  --green-accent: #94BF80;   /* Verde pastel suave, para barras/acento */
+  --accent: #F2955E;         /* Naranja elegante sutil para highlights */
+    /* Blanco-gris claro profesional */
+  --white: #ffffff;     /* Gris azulado legible en todos los tonos */
+  --border: #d1d5db;
+
 }
 
 /* Scrollbar personalizado */

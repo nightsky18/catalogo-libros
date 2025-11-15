@@ -1,5 +1,5 @@
 const PDFDocument = require('pdfkit');
-
+const path = require('path');
 /**
  * Generador de PDFs con estilo de la aplicación
  * SIN emojis (causan caracteres raros)
@@ -15,55 +15,54 @@ class PDFReportBuilder {
     
     // Colores de la aplicación
     this.colors = {
-      primary: [102, 126, 234],      // #667eea
-      primaryDark: [85, 104, 211],   // #5568d3
-      secondary: [118, 75, 162],     // #764ba2
-      success: [34, 197, 94],        // #22c55e
-      gray900: [31, 41, 55],         // #1f2937
-      gray700: [55, 65, 81],         // #374151
-      gray600: [75, 85, 99],         // #4b5563
-      gray500: [107, 114, 128],      // #6b7280
-      gray300: [209, 213, 219],      // #d1d5db
-      gray100: [243, 244, 246],      // #f3f4f6
+      primary: [8, 52, 140],       // #08348C
+      primaryDark: [9, 44, 115],   // #092C73
+      secondary: [70, 140, 81],    // #468C51
+      accent: [242, 149, 94],      // #F2955E
+      gray900: [26, 34, 51],       // #1a2233
+      gray700: [55, 65, 81],       // #374451
+      gray600: [75, 85, 99],       // #4b5563
+      gray500: [107, 114, 128],    // #6b7280
+      gray300: [209, 213, 219],    // #afefffff
+      gray100: [242, 242, 242],    // #f2f2f2
+      black: [0, 0, 0],
       white: [255, 255, 255]
     };
     
     this.currentY = 80;
+    // Ruta absoluta del logo
+    this.logoPath = path.resolve(__dirname, '../assets/Logo.png');
   }
 
   /**
    * Añade encabezado con degradado
    */
-  addHeader(title, subtitle = '') {
+addHeader(title, subtitle = '') {
     const headerHeight = subtitle ? 100 : 75;
-    
-    // Degradado de primary a secondary
-    for (let i = 0; i < headerHeight; i++) {
-      const ratio = i / headerHeight;
-      const r = Math.round(this.colors.primary[0] + (this.colors.secondary[0] - this.colors.primary[0]) * ratio);
-      const g = Math.round(this.colors.primary[1] + (this.colors.secondary[1] - this.colors.primary[1]) * ratio);
-      const b = Math.round(this.colors.primary[2] + (this.colors.secondary[2] - this.colors.primary[2]) * ratio);
-      
-      this.doc
-        .rect(0, i, 595.28, 1)
-        .fillColor([r, g, b])
-        .fill();
-    }
-    
-    // Título
+
+    // Fondo sólido azul institucional
+    this.doc
+      .rect(0, 0, this.doc.page.width, headerHeight)  // Usar this.doc.page.width para ancho
+      .fillColor(this.colors.gray300)                 // Color azul institucional sólido
+      .fill();
+
+    // Agregar logo (ajusta la ruta y tamaño)
+     this.doc.image(this.logoPath, 60, 15, { width: 100 })
+
+    // Título, con texto blanco y posición adecuada
     this.doc
       .font('Helvetica-Bold')
-      .fontSize(26)
-      .fillColor(this.colors.white)
-      .text(title, 50, 25, { align: 'center', width: 495 });
+      .fontSize(28)
+      .fillColor(this.colors.black)
+      .text(title, 180, 35, { align: 'left', width: this.doc.page.width - 220 });
 
+    // Subtítulo, si hay
     if (subtitle) {
       this.doc
         .font('Helvetica')
-        .fontSize(12)
-        .fillColor([255, 255, 255, 0.95])
-        .text(subtitle, 50, 60, { align: 'center', width: 495 });
-      
+        .fontSize(13)
+        .fillColor(['black'])
+        .text(subtitle, 180, 70, { align: 'left', width: this.doc.page.width - 220 });
       this.currentY = 115;
     } else {
       this.currentY = 90;
@@ -71,6 +70,7 @@ class PDFReportBuilder {
 
     return this;
   }
+
 
   /**
    * Añade resumen - SIN EMOJI
@@ -91,10 +91,10 @@ class PDFReportBuilder {
 
     const data = [
       ['Total de Libros', totalLibros],
-      ['Total de Paginas', totalPaginas.toLocaleString('es-CO')],
-      ['Promedio Paginas/Libro', Math.round(promedioPaginasPorLibro)],
-      ['Año Promedio Publicacion', Math.round(promedioAnioPublicacion)],
-      ['Editoriales Unicas', editorialesUnicas]
+      ['Total de Páginas', totalPaginas.toLocaleString('es-CO')],
+      ['Promedio Páginas/Libro', Math.round(promedioPaginasPorLibro)],
+      ['Año Promedio Publicación', Math.round(promedioAnioPublicacion)],
+      ['Editoriales Únicas', editorialesUnicas]
     ];
 
     data.forEach(([label, value], index) => {
@@ -136,12 +136,12 @@ class PDFReportBuilder {
       .font('Helvetica-Bold')
       .fontSize(16)
       .fillColor(this.colors.primary)
-      .text('ESTADISTICAS POR GENERO', 50, this.currentY);
+      .text('ESTADÍSTICAS POR GÉNERO', 50, this.currentY);
     
     this.currentY += 30;
 
     this._renderTable(
-      ['Genero', 'Cantidad', 'Porcentaje', 'Total Paginas'],
+      ['Género', 'Cantidad', 'Porcentaje', 'Total Páginas'],
       genreStats.map(g => [
         g.genero,
         g.cantidad.toString(),
@@ -165,12 +165,12 @@ class PDFReportBuilder {
       .font('Helvetica-Bold')
       .fontSize(16)
       .fillColor(this.colors.primary)
-      .text('ESTADISTICAS POR DECADA', 50, this.currentY);
+      .text('ESTADÍSTICAS POR DÉCADA', 50, this.currentY);
     
     this.currentY += 30;
 
     this._renderTable(
-      ['Decada', 'Cantidad', 'Porcentaje', 'Rango Años'],
+      ['Década', 'Cantidad', 'Porcentaje', 'Rango Años'],
       decadeStats.map(d => [
         d.decada,
         d.cantidad.toString(),
@@ -199,7 +199,7 @@ class PDFReportBuilder {
     this.currentY += 30;
 
     this._renderTable(
-      ['Autor', 'Libros', 'Porcentaje', 'Total Paginas'],
+      ['Autor', 'Libros', 'Porcentaje', 'Total Páginas'],
       topAutores.slice(0, 10).map(a => [
         a.autor,
         a.cantidad.toString(),
@@ -213,9 +213,7 @@ class PDFReportBuilder {
     return this;
   }
 
-  /**
-   * Añade catálogo de libros - SIN EMOJI
-   */
+ 
   addBooksCatalog(libros, maxBooks = 50) {
     this._checkPageSpace(180);
     
@@ -223,12 +221,12 @@ class PDFReportBuilder {
       .font('Helvetica-Bold')
       .fontSize(16)
       .fillColor(this.colors.primary)
-      .text('CATALOGO DE LIBROS', 50, this.currentY);
+      .text('CATÁLOGO DE LIBROS', 50, this.currentY);
     
     this.currentY += 30;
 
     this._renderTable(
-      ['Titulo', 'Autor', 'Año', 'Pag.', 'Genero'],
+      ['Título', 'Autor', 'Año', 'Pág.', 'Género'],
       libros.slice(0, maxBooks).map(libro => [
         this._truncate(libro.titulo, 35),
         this._truncate(libro.autor, 28),
@@ -361,7 +359,7 @@ async function generateCatalogoPDF(libros, estadisticas) {
 
     await builder
       .addHeader(
-        'Catalogo de Libros - Informe Completo',
+        'Informe Completo',
         `Fecha de generacion: ${new Date().toLocaleDateString('es-CO', { 
           year: 'numeric', 
           month: 'long', 

@@ -1,7 +1,8 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import './App.css';
-
+import logo from './assets/Logo.png';
 // Importar páginas
+
 import Home from './pages/Home';
 import BookList from './pages/BookList';
 import BookForm from './pages/BookForm';
@@ -20,8 +21,8 @@ function App() {
       <header className="app-header">
         <div className="header-content">
           <Link to="/" className="logo">
-            <span className="logo-icon">📚</span>
-            <h1>Catálogo de Libros</h1>
+            <img src={logo} alt="BookAnalytics Logo" className="logo-image" />
+            <h1>BookAnalytics</h1>
           </Link>
           
           <nav className="nav-menu">

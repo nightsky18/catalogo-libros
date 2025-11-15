@@ -10,7 +10,7 @@
 /* ==================== HERO SECTION ==================== */
 
 .hero-section {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: rgba(56, 103, 132, 0.98);
   border-radius: 20px;
   padding: 4rem 3rem;
   text-align: center;

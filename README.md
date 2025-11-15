@@ -1,13 +1,13 @@
 
 ---
 
-# 📚 Sistema de Gestión de Catálogo de Libros
+# 📚 BookAnalytics
 
 Sistema web full-stack para la gestión de catálogo de libros con generación de informes XML. Desarrollado con arquitectura REST y desplegado en la nube.
 
 ## 📋 Descripción
 
-Aplicación web que permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) sobre un catálogo de libros, con funcionalidad de generación de informes estadísticos en formato XML.
+Aplicación web que permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) sobre un catálogo de libros, con funcionalidad de generación de informes estadísticos en formato XML interactivo y PDF.
 
 ## 🚀 Tecnologías y Versiones
 
@@ -125,7 +125,7 @@ npm install
 VITE_API_URL=http://localhost:5000
 ```
 
-## 🏃‍♂️ Ejecutar en Desarrollo
+## Ejecutar en Desarrollo
 
 ### Terminal 1 - Backend
 
@@ -158,25 +158,6 @@ VITE v6.0.1  ready in XXX ms
 - **Frontend**: http://localhost:5173
 - **Backend**: http://localhost:5000 (prueba la API)
 
-## 🔌 Endpoints de la API (Por implementar)
-
-### Libros (CRUD)
-
-| Método | Endpoint | Descripción | Estado |
-|--------|----------|-------------|--------|
-| GET | `/api/books` | Obtener todos los libros | ⏳ Por hacer |
-| GET | `/api/books/:id` | Obtener un libro por ID | ⏳ Por hacer |
-| POST | `/api/books` | Crear un nuevo libro | ⏳ Por hacer |
-| PUT | `/api/books/:id` | Actualizar un libro | ⏳ Por hacer |
-| DELETE | `/api/books/:id` | Eliminar un libro | ⏳ Por hacer |
-
-### Informes XML
-
-| Método | Endpoint | Descripción | Estado |
-|--------|----------|-------------|--------|
-| GET | `/api/reports/xml` | Generar informe XML completo | ⏳ Por hacer |
-| GET | `/api/reports/stats` | Obtener estadísticas en JSON | ⏳ Por hacer |
-| GET | `/api/reports/download` | Descargar archivo XML | ⏳ Por hacer |
 
 ## 📊 Modelo de Datos
 
@@ -251,8 +232,8 @@ npm run preview    # Previsualiza build de producción
 - [ ] Despliegue en Render
 
 ## 👥 Autores
-
-Mariana Montoya Sepulveda - Mateo Berrio Cardona
+ - Mateo Berrío Cardona
+ - Mariana Montoya Sepúlveda
 
 ## 📅 Fecha de Entrega
 

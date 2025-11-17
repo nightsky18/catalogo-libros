@@ -1,9 +1,9 @@
 const Book = require('../models/Book');
 
-/**
- * Controlador de Libros - Maneja la lógica de negocio del CRUD
- */
-
+const normalizeIsbn = (v = '') => v.replace(/[-\s]/g, '');
+const isIsbn10 = (v) => /^\d{9}[\dX]$/.test(v);
+const isIsbn13 = (v) => /^\d{13}$/.test(v);
+const isLen10to13 = (v) => v.length >= 10 && v.length <= 13;
 /**
  * Obtener todos los libros con paginación y filtros avanzados
  * @route GET /api/books
@@ -143,6 +143,31 @@ const getBookById = async (req, res) => {
  */
 const createBook = async (req, res) => {
   try {
+    // Normalizar ISBN y validar antes de persistir
+    if (req.body?.isbn) {
+      req.body.isbn = normalizeIsbn(req.body.isbn);
+      const v = req.body.isbn.toUpperCase();
+
+      // Largo permitido
+      if (!isLen10to13(v)) {
+        return res.status(400).json({
+          success: false,
+          message: 'ISBN inválido',
+          errors: ['El ISBN debe tener entre 10 y 13 caracteres (sin guiones ni espacios).']
+        });
+      }
+      if (!(isIsbn10(v) || isIsbn13(v))) {
+          return res.status(400).json({
+            success: false,
+            message: 'Formato de ISBN no válido',
+            errors: [
+              'Use ISBN-10 (9 dígitos y dígito de control, X permitido) o ISBN-13 (13 dígitos).',
+              'Ingrese el ISBN sin guiones ni espacios; se formateará automáticamente.'
+            ]
+          });
+       }
+    }
+
     const libro = await Book.create(req.body);
 
     res.status(201).json({
@@ -151,7 +176,6 @@ const createBook = async (req, res) => {
       data: libro
     });
   } catch (error) {
-    // Manejo específico de errores de validación y duplicados
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
@@ -160,14 +184,12 @@ const createBook = async (req, res) => {
         errors: messages
       });
     }
-
     if (error.code === 11000) {
       return res.status(409).json({
         success: false,
-        message: 'El ISBN ya existe en la base de datos'
+        message: 'El ISBN ya existe en la base de datos. Debe ser único.'
       });
     }
-
     res.status(500).json({
       success: false,
       message: 'Error al crear el libro',
@@ -175,20 +197,42 @@ const createBook = async (req, res) => {
     });
   }
 };
-
 /**
  * Actualizar un libro existente
  * @route PUT /api/books/:id
  */
 const updateBook = async (req, res) => {
   try {
+  if (req.body?.isbn) {
+    req.body.isbn = normalizeIsbn(req.body.isbn);
+    const v = req.body.isbn.toUpperCase();
+
+    // Largo permitido
+    if (!isLen10to13(v)) {
+      return res.status(400).json({
+        success: false,
+        message: 'ISBN inválido',
+        errors: ['El ISBN debe tener entre 10 y 13 caracteres (sin guiones ni espacios).']
+      });
+    }
+
+    // Formatos válidos
+    if (!(isIsbn10(v) || isIsbn13(v))) {
+      return res.status(400).json({
+        success: false,
+        message: 'Formato de ISBN no válido',
+        errors: [
+          'Use ISBN-10 (9 dígitos y dígito de control, X permitido) o ISBN-13 (13 dígitos).',
+          'Ingrese el ISBN sin guiones ni espacios; se formateará automáticamente.'
+        ]
+      });
+    }
+  }
+
     const libro = await Book.findByIdAndUpdate(
       req.params.id,
       req.body,
-      {
-        new: true, // Retorna el documento actualizado
-        runValidators: true // Ejecuta validaciones del schema
-      }
+      { new: true, runValidators: true }
     );
 
     if (!libro) {
@@ -212,14 +256,12 @@ const updateBook = async (req, res) => {
         errors: messages
       });
     }
-
     if (error.code === 11000) {
       return res.status(409).json({
         success: false,
-        message: 'El ISBN ya existe en la base de datos'
+        message: 'El ISBN ya existe en la base de datos. Debe ser único.'
       });
     }
-
     res.status(500).json({
       success: false,
       message: 'Error al actualizar el libro',
@@ -227,7 +269,6 @@ const updateBook = async (req, res) => {
     });
   }
 };
-
 /**
  * Eliminar un libro
  * @route DELETE /api/books/:id

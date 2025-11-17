@@ -97,7 +97,9 @@ function Home() {
               <div className="stat-card stat-warning">
                 <div className="stat-icon">📖</div>
                 <div className="stat-content">
-                  <div className="stat-value">{stats.resumen.promedioPaginasPorLibro}</div>
+                  <div className="stat-value">
+                    {stats.resumen.promedioPaginasPorLibro.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
                   <div className="stat-label">Páginas Promedio</div>
                 </div>
               </div>

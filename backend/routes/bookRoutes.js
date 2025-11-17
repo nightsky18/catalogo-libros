@@ -9,9 +9,6 @@ const {
   createBulkBooks
 } = require('../controllers/bookController');
 
-/**
- * Rutas de Libros - Define los endpoints del recurso Book
- */
 
 // Rutas base: /api/books
 router.route('/')

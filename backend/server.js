@@ -11,6 +11,15 @@ dotenv.config();
 
 const app = express();
 
+// CORS configurado para producción
+app.use(cors({
+  origin: [
+    'http://localhost:5173',  // Desarrollo local
+    'https://catalogo-libros-eta.vercel.app/'  // CAMBIAR por tu URL de Vercel
+  ],
+  credentials: true
+}));
+
 // Middlewares
 app.use(cors());
 app.use(express.json());
@@ -35,7 +44,11 @@ app.get('/api/health', (req, res) => {
 app.use('/api/books', bookRoutes);
 app.use('/api/reports', reportRoutes); 
 
+// Puerto dinámico para Render
 const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
+});
 
 const startServer = async () => {
   try {

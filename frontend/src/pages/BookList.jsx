@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getBooks, deleteBook } from '../services/api';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { formatIsbn } from '../utils/formatters';
 import './BookList.css';
 
 function BookList() {
@@ -406,7 +407,7 @@ function BookList() {
               >
                 <div className="book-card-header">
                   <span className="book-genre">{book.genero}</span>
-                  <span className="book-year">{book.anioPublicacion}</span>
+                  <span className="book-year">{book.anioPublicacion || '—'}</span>
                 </div>
                 
                 <div className="book-card-body">
@@ -426,10 +427,11 @@ function BookList() {
                     </div>
                     <div className="detail-item">
                       <span className="icon">📖</span>
-                      <span>{book.isbn}</span>
+                      <span>{book.isbnFormateado ?? formatIsbn(book.isbn)}</span>
                     </div>
                   </div>
                 </div>
+
 
                 <div className="book-card-actions">
                   <button

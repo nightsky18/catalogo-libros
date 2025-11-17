@@ -15,7 +15,11 @@ body,
 }
 
 body {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background: radial-gradient(1200px 600px at 10% 0%, #0b3f92 0%, #62d1d9 50%, #09224a 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: var(--text-main, #1a2233);
 }
 
 /* Variables CSS globales */

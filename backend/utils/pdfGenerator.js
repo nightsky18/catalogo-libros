@@ -23,7 +23,7 @@ class PDFReportBuilder {
       gray700: [55, 65, 81],       // #374451
       gray600: [75, 85, 99],       // #4b5563
       gray500: [107, 114, 128],    // #6b7280
-      gray300: [209, 213, 219],    // #afefffff
+      gray300: [209, 213, 219],    // #10967bff
       gray100: [242, 242, 242],    // #f2f2f2
       black: [0, 0, 0],
       white: [255, 255, 255]
@@ -34,20 +34,18 @@ class PDFReportBuilder {
     this.logoPath = path.resolve(__dirname, '../assets/Logo.png');
   }
 
-  /**
-   * Añade encabezado con degradado
-   */
+
 addHeader(title, subtitle = '') {
     const headerHeight = subtitle ? 100 : 75;
 
-    // Fondo sólido azul institucional
+    
     this.doc
       .rect(0, 0, this.doc.page.width, headerHeight)  // Usar this.doc.page.width para ancho
-      .fillColor(this.colors.gray300)                 // Color azul institucional sólido
+      .fillColor(this.colors.gray300)     
       .fill();
 
     // Agregar logo (ajusta la ruta y tamaño)
-     this.doc.image(this.logoPath, 60, 15, { width: 100 })
+     this.doc.image(this.logoPath, 60, 16, { width: 104 })
 
     // Título, con texto blanco y posición adecuada
     this.doc
@@ -72,9 +70,7 @@ addHeader(title, subtitle = '') {
   }
 
 
-  /**
-   * Añade resumen - SIN EMOJI
-   */
+ 
   addSummarySection(stats) {
     this._checkPageSpace(180);
     
@@ -223,11 +219,11 @@ addHeader(title, subtitle = '') {
       .fillColor(this.colors.primary)
       .text('CATÁLOGO DE LIBROS', 50, this.currentY);
     
-    this.currentY += 30;
+    this.currentY += 14;
 
     this._renderTable(
       ['Título', 'Autor', 'Año', 'Pág.', 'Género'],
-      libros.slice(0, maxBooks).map(libro => [
+      libros.map(libro => [
         this._truncate(libro.titulo, 35),
         this._truncate(libro.autor, 28),
         libro.anioPublicacion.toString(),
@@ -236,18 +232,15 @@ addHeader(title, subtitle = '') {
       ]),
       [140, 120, 50, 60, 70]
     );
-
-    if (libros.length > maxBooks) {
       this.doc
-        .font('Helvetica')
-        .fontSize(9)
-        .fillColor(this.colors.gray600)
-        .text(`* Mostrando ${maxBooks} de ${libros.length} libros`, 50, this.currentY, { 
-          align: 'right',
-          width: 495
-        });
-      this.currentY += 20;
-    }
+    .font('Helvetica')
+    .fontSize(9)
+    .fillColor(this.colors.gray600)
+    .text(`Mostrando ${libros.length}/${libros.length} del catálogo`, 50, this.currentY, {
+      align: 'right',
+      width: 495
+    });
+  this.currentY += 16
 
     return this;
   }
@@ -281,23 +274,23 @@ addHeader(title, subtitle = '') {
   /**
    * Renderiza tabla
    */
-  _renderTable(headers, rows, widths) {
-    const startX = 50;
-    const rowHeight = 22;
-    const estimatedHeight = 30 + (rows.length * rowHeight);
+_renderTable(headers, rows, widths) {
+  const startX = 50;
+  const rowH = 25;
+  const headerH = 22;
+  const tableW = widths.reduce((a, b) => a + b, 0);
 
-    // Verificar espacio para tabla completa
-    this._checkPageSpace(estimatedHeight);
-    
-    // Headers con fondo primary
+  // límites superiores e inferiores reales de la página
+  const topY = this.doc.page.margins.top;                 // normalmente 50
+  const bottomY = this.doc.page.height - this.doc.page.margins.bottom; // normalmente 792
+
+  const drawHeader = () => {
+    // barra de encabezado
     this.doc
-      .rect(startX, this.currentY, widths.reduce((a, b) => a + b), 22)
+      .rect(startX, this.currentY, tableW, headerH)
       .fillAndStroke(this.colors.primary, this.colors.primary);
 
-    this.doc
-      .font('Helvetica-Bold')
-      .fontSize(10)
-      .fillColor(this.colors.white);
+    this.doc.font('Helvetica-Bold').fontSize(10).fillColor(this.colors.white);
 
     let x = startX;
     headers.forEach((h, i) => {
@@ -305,44 +298,49 @@ addHeader(title, subtitle = '') {
       x += widths[i];
     });
 
-    this.currentY += 25;
+    this.currentY += headerH + 3; // pequeño espacio después del header
+    this.doc.font('Helvetica').fontSize(9).fillColor(this.colors.gray900);
+  };
 
-    // Rows
-    this.doc.font('Helvetica').fontSize(9);
+  // Si no cabe al menos header + una fila, saltar de página
+  if (this.currentY + headerH + rowH + 6 > bottomY) {
+    this.doc.addPage();
+    this.currentY = topY;
+  }
+  drawHeader();
 
-    rows.forEach((row, idx) => {
-      // Verificar espacio para cada fila
-      this._checkPageSpace(rowHeight + 10);
+  rows.forEach((row, idx) => {
+    // si esta fila no cabe, nueva página y repetir header
+    if (this.currentY + rowH + 6 > bottomY) {
+      this.doc.addPage();
+      this.currentY = topY;
+      drawHeader();
+    }
 
-      // Fondo alternado
-      if (idx % 2 === 0) {
-        this.doc
-          .rect(startX, this.currentY - 3, widths.reduce((a, b) => a + b), rowHeight)
-          .fillColor(this.colors.gray100)
-          .fill();
-      }
-
+    // fondo alternado
+    if (idx % 2 === 0) {
+      this.doc
+        .rect(startX, this.currentY - 2, tableW, rowH)
+        .fillColor(this.colors.gray100)
+        .fill();
       this.doc.fillColor(this.colors.gray900);
+    }
 
-      x = startX;
-      row.forEach((cell, i) => {
-        this.doc.text(
-          String(cell), 
-          x + 5, 
-          this.currentY, 
-          { 
-            width: widths[i] - 10, 
-            align: i === 0 ? 'left' : 'center' 
-          }
-        );
-        x += widths[i];
+    let x = startX;
+    row.forEach((cell, i) => {
+      this.doc.text(String(cell), x + 5, this.currentY + 4, {
+        width: widths[i] - 10,
+        align: i === 0 ? 'left' : 'center'
       });
-
-      this.currentY += rowHeight;
+      x += widths[i];
     });
 
-    this.currentY += 5;
-  }
+    this.currentY += rowH;
+  });
+
+  this.currentY += 6; // separación inferior de la tabla
+}
+
 
   _truncate(text, max) {
     if (!text) return 'N/A';

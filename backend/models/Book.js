@@ -1,9 +1,6 @@
 const mongoose = require('mongoose');
 
-/**
- * Schema de Libro - Define la estructura y validaciones de un libro en la base de datos
- * Cumple con Single Responsibility: solo define la estructura de datos
- */
+
 const bookSchema = new mongoose.Schema(
   {
     titulo: {

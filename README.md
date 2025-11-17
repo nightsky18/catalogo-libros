@@ -227,9 +227,11 @@ npm run preview    # Previsualiza build de producción
 - [x] Sistema de informes XML
 - [x] Visualización de árbol XML
 - [x] Cálculo de estadísticas
+- [X] Despliegue en Render
 
-### ⏳ En desarrollo
-- [ ] Despliegue en Render
+### Links
+- Frontend (Vercel): https://catalogo-libros-eta.vercel.app/
+- Backend (Render): https://catalogo-backend-kca0.onrender.com/
 
 ## 👥 Autores
  - Mateo Berrío Cardona

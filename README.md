@@ -246,9 +246,9 @@ npm run preview    # Previsualiza build de producción
 - [x] Sistema de informes XML
 - [x] Visualización de árbol XML
 - [x] Cálculo de estadísticas
+- [x] Despliegue en Render
 
-### ⏳ En desarrollo
-- [ ] Despliegue en Render
+### ⏳ En desarrollo...
 
 ## 👥 Autores
 
